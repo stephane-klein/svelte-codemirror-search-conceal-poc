@@ -1,6 +1,10 @@
 # svelte-codemirror-search-conceal-poc
 
-POC of an enriched search field using CodeMirror and the conceal mechanism in a Svelte application
+POC of an enriched search field using CodeMirror and the conceal mechanism in a Svelte application.
+
+Project description in French: [POC champ de recherche enrichi avec CodeMirror et conceal](https://notes.sklein.xyz/Projet%2038/zen/)
+
+Demo: https://stephane-klein.github.io/svelte-codemirror-search-conceal-poc/
 
 ## AI-Assisted Development
 
