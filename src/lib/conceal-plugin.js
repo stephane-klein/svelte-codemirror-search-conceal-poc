@@ -150,7 +150,7 @@ function tagDecorations(view, threshold, showImplicit, defaultOp) {
     for (let i = 1; i < elements.length; i++) {
       const prev = elements[i - 1];
       const curr = elements[i];
-      if (prev.type === "operator" && curr.type === "operator") continue;
+      if (prev.type === "operator" || curr.type === "operator") continue;
       const between = docStr.slice(prev.to, curr.from);
       if (/^\s*$/.test(between) && between.length > 0) {
         addConceal(prev.to, curr.from, defaultOp, false);
