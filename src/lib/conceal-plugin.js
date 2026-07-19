@@ -66,7 +66,7 @@ export function checkParens(docStr, quotedRanges) {
   return null;
 }
 
-function tagDecorations(view, threshold) {
+function tagDecorations(view, threshold, showImplicit, defaultOp) {
   const widgets = [];
   const doc = view.state.doc;
   const docStr = doc.toString();
@@ -114,23 +114,58 @@ function tagDecorations(view, threshold) {
   }
 
   TAG_PATTERN.lastIndex = 0;
+
+  const tags = [];
   let match;
   while ((match = TAG_PATTERN.exec(docStr)) !== null) {
-    addConceal(match.index, match.index + match[0].length, match[0].slice(1), true);
+    tags.push({ from: match.index, to: match.index + match[0].length, text: match[0].slice(1), type: "tag" });
   }
 
-  for (const op of findOperators(docStr)) {
-    addConceal(op.from, op.to, op.text, false);
+  const operators = findOperators(docStr).map((op) => ({ ...op, type: "operator" }));
+
+  const parens = [];
+  for (let i = 0; i < docStr.length; i++) {
+    if (docStr[i] === "(" || docStr[i] === ")") {
+      if (!quotedRanges.some((r) => i >= r.from && i < r.to)) {
+        parens.push({ from: i, to: i + 1, text: docStr[i], type: docStr[i] === "(" ? "open" : "close" });
+      }
+    }
+  }
+
+  const elements = [...tags, ...operators, ...parens].sort((a, b) => a.from - b.from);
+
+  for (const el of elements) {
+    if (el.type === "tag") {
+      addConceal(el.from, el.to, el.text, true);
+    } else if (el.type === "operator") {
+      let from = el.from;
+      let to = el.to;
+      if (from > 0 && docStr[from - 1] === " ") from--;
+      if (to < docLength && docStr[to] === " ") to++;
+      addConceal(from, to, el.text, false);
+    }
+  }
+
+  if (showImplicit) {
+    for (let i = 1; i < elements.length; i++) {
+      const prev = elements[i - 1];
+      const curr = elements[i];
+      if (prev.type === "operator" && curr.type === "operator") continue;
+      const between = docStr.slice(prev.to, curr.from);
+      if (/^\s*$/.test(between) && between.length > 0) {
+        addConceal(prev.to, curr.from, defaultOp, false);
+      }
+    }
   }
 
   return Decoration.set(widgets, true);
 }
 
-export function concealPlugin(threshold = 1) {
+export function concealPlugin(threshold = 1, showImplicit = false, defaultOp = "and") {
   return ViewPlugin.fromClass(
     class {
       constructor(view) {
-        this.decorations = tagDecorations(view, threshold);
+        this.decorations = tagDecorations(view, threshold, showImplicit, defaultOp);
       }
 
       update(update) {
@@ -140,7 +175,7 @@ export function concealPlugin(threshold = 1) {
           update.viewportChanged ||
           update.focusChanged
         ) {
-          this.decorations = tagDecorations(update.view, threshold);
+          this.decorations = tagDecorations(update.view, threshold, showImplicit, defaultOp);
         }
       }
     },

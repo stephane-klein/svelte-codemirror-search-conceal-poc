@@ -17,6 +17,8 @@
   const autocompleteCompartment = new Compartment();
 
   let showParensError = $state(false);
+  let showImplicitOperators = $state(false);
+  let implicitOperator = $state('and');
 
   let operatorError = $derived.by(() => {
     if (!rawContent) return false;
@@ -63,7 +65,7 @@
           key: 'Enter',
           run: () => { showParensError = true; return true; },
         }]),
-        concealCompartment.of(concealPlugin(1)),
+        concealCompartment.of(concealPlugin(1, false, 'and')),
         autocompleteCompartment.of(tagAutocompleteExtension(1, 100)),
         EditorView.theme({
           '&': { height: '100%', maxWidth: '100%', overflow: 'hidden' },
@@ -93,6 +95,7 @@
           },
           '.cm-operator-pill': {
             padding: '0.05em 0.25em',
+            margin: '0 0.2em',
             borderRadius: '0.3em',
             fontSize: '0.75em',
             fontWeight: '500',
@@ -147,12 +150,14 @@
   $effect(() => {
     if (!viewReady) return;
     const t = threshold;
+    const s = showImplicitOperators;
+    const o = implicitOperator;
     const m = autocompleteMinChars;
     const d = autocompleteDebounceMs;
 
     view.dispatch({
       effects: [
-        concealCompartment.reconfigure(concealPlugin(t)),
+        concealCompartment.reconfigure(concealPlugin(t, s, o)),
         autocompleteCompartment.reconfigure(tagAutocompleteExtension(m, d)),
       ],
     });
@@ -195,6 +200,21 @@
   <input type="number" id="autocomplete-debounce" bind:value={autocompleteDebounceMs} min="0" max="2000" step="50" />
   <span class="config-value">={autocompleteDebounceMs}ms</span>
 </div>
+
+<div class="config-row">
+  <label>
+    <input type="checkbox" bind:checked={showImplicitOperators} />
+    Show implicit operators between consecutive tags
+  </label>
+</div>
+
+{#if showImplicitOperators}
+  <div class="config-row">
+    <span>Default implicit operator:</span>
+    <label><input type="radio" bind:group={implicitOperator} value="and" /> and</label>
+    <label><input type="radio" bind:group={implicitOperator} value="or" /> or</label>
+  </div>
+{/if}
 
 <p>Search input raw value: {rawContent}</p>
 
