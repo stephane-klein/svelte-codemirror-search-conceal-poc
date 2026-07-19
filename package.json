@@ -4,7 +4,14 @@
   "author": "Stéphane Klein",
   "license": "MIT",
   "scripts": {
-    "hello": "node src/hello_world.js"
+    "dev": "vite dev",
+    "build": "vite build",
+    "preview": "vite preview"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "@sveltejs/adapter-node": "^5.5.7",
+    "@sveltejs/kit": "^2.70.0",
+    "svelte": "^5.56.6",
+    "vite": "^8.1.5"
+  }
 }
