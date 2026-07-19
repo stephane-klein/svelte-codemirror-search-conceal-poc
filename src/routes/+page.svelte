@@ -2,7 +2,7 @@
   import { EditorView, keymap, placeholder } from '@codemirror/view';
   import { EditorState, Compartment } from '@codemirror/state';
   import { defaultKeymap } from '@codemirror/commands';
-  import { concealPlugin } from '$lib/conceal-plugin.js';
+  import { concealPlugin, findOperators, findQuotedRanges } from '$lib/conceal-plugin.js';
   import { tagAutocompleteExtension } from '$lib/autocomplete-plugin.js';
 
   let container;
@@ -14,6 +14,20 @@
 
   const concealCompartment = new Compartment();
   const autocompleteCompartment = new Compartment();
+
+  let operatorError = $derived.by(() => {
+    if (!rawContent) return false;
+    const operators = findOperators(rawContent);
+    const quotedRanges = findQuotedRanges(rawContent);
+    const outside = operators.filter(
+      (op) => !quotedRanges.some((qr) => op.from >= qr.from && op.to <= qr.to)
+    );
+    for (let i = 1; i < outside.length; i++) {
+      const between = rawContent.slice(outside[i - 1].to, outside[i].from);
+      if (/^\s*$/.test(between)) return true;
+    }
+    return false;
+  });
 
   const singleLine = EditorState.transactionFilter.of((tr) => {
     if (tr.newDoc.lines > 1) return [];
@@ -133,6 +147,10 @@
   <button>Apply</button>
 </div>
 
+{#if operatorError}
+  <p class="error-msg">Consecutive boolean operators detected</p>
+{/if}
+
 <div class="config-row">
   <label for="threshold">Conceal threshold (chars):</label>
   <input type="number" id="threshold" bind:value={threshold} min="0" max="20" />
@@ -185,5 +203,11 @@
   .config-value {
     font-family: monospace;
     color: #666;
+  }
+
+  .error-msg {
+    color: #cc0000;
+    font-size: 13px;
+    margin: 4px 0 0;
   }
 </style>

@@ -11,7 +11,7 @@ function expandRange(from, to, threshold, max) {
   ];
 }
 
-function findOperators(docStr) {
+export function findOperators(docStr) {
   const results = [];
 
   const wordRe = /\b(or|and|et|ou|not|non)\b/gi;
@@ -35,7 +35,7 @@ function findOperators(docStr) {
   return results;
 }
 
-function findQuotedRanges(docStr) {
+export function findQuotedRanges(docStr) {
   const ranges = [];
   let i = 0;
   while (i < docStr.length) {
