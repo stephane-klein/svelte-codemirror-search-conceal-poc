@@ -20,4 +20,12 @@ $ mise install
 $ pnpm install
 ```
 
+## Development
+
+```bash
+$ pnpm run dev
+```
+
+Open http://localhost:5173/ in your browser.
+
 
