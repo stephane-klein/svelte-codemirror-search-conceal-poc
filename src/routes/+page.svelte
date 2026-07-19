@@ -6,7 +6,24 @@
   let autocompleteDebounceMs = $state(200);
   let showImplicitOperators = $state(false);
   let implicitOperator = $state("and");
-  const fetchTags = async () => { const r = await fetch("/tags.json"); return r.json(); };
+
+  const tags = [
+    'linux', 'git', 'curl', 'nginx', 'postgresql', 'sqlite', 'redis',
+    'memcached', 'openssh', 'openssl', 'ffmpeg', 'vim', 'neovim',
+    'emacs', 'tmux', 'zsh', 'bash', 'coreutils', 'systemd', 'docker',
+    'podman', 'kubernetes', 'containerd', 'runc', 'traefik',
+    'haproxy', 'envoy', 'caddy', 'vault', 'consul',
+    'etcd', 'prometheus', 'grafana', 'thanos', 'loki', 'jaeger',
+    'rust', 'clang', 'llvm', 'gcc', 'make', 'cmake', 'ninja',
+    'libressl', 'polars', 'duckdb', 'clickhouse',
+    'zstd', 'lz4', 'rsync', 'wireshark',
+    'varnish', 'squid', 'openvpn', 'wireguard',
+    'libvirt', 'qemu', 'wayland',
+    'mesa', 'pipewire', 'bluez',
+    'nftables', 'iptables',
+    'busybox', 'alpine', 'nixos',
+    'debian', 'arch', 'gentoo',
+  ];
 </script>
 
 <h1>svelte-codemirror-search-conceal-poc</h1>
@@ -66,7 +83,7 @@
     implicitOp={implicitOperator}
     doc="#linux and #git or #postgresql"
     ph="Search..."
-    tags={fetchTags}
+    tags={tags}
   />
 </div>
 
@@ -82,7 +99,7 @@
     implicitOp={implicitOperator}
     doc="(#docker #podman) and (#linux #git)"
     ph="Search..."
-    tags={fetchTags}
+    tags={tags}
   />
 </div>
 
@@ -98,7 +115,7 @@
     implicitOp={implicitOperator}
     doc="#ffmpeg #wireshark #ffmpeg"
     ph="Search..."
-    tags={fetchTags}
+    tags={tags}
   />
 </div>
 
