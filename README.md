@@ -6,6 +6,10 @@ Project description in French: [POC champ de recherche enrichi avec CodeMirror e
 
 Demo: https://stephane-klein.github.io/svelte-codemirror-search-conceal-poc/
 
+## Development Time
+
+This project was built in about 2 hours and 30 minutes.
+
 ## AI-Assisted Development
 
 This project was developed using:
