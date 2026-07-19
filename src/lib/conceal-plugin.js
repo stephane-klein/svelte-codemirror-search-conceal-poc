@@ -35,6 +35,23 @@ function findOperators(docStr) {
   return results;
 }
 
+function findQuotedRanges(docStr) {
+  const ranges = [];
+  let i = 0;
+  while (i < docStr.length) {
+    const start = docStr.indexOf('"', i);
+    if (start === -1) break;
+    const end = docStr.indexOf('"', start + 1);
+    if (end === -1) {
+      ranges.push({ from: start + 1, to: Infinity });
+      break;
+    }
+    ranges.push({ from: start + 1, to: end });
+    i = end + 1;
+  }
+  return ranges;
+}
+
 function tagDecorations(view, threshold) {
   const widgets = [];
   const doc = view.state.doc;
@@ -42,8 +59,11 @@ function tagDecorations(view, threshold) {
   const docLength = docStr.length;
   const selections = view.state.selection.ranges;
   const hasFocus = view.hasFocus;
+  const quotedRanges = findQuotedRanges(docStr);
 
   function addConceal(from, to, text, isTag) {
+    const insideQuotes = quotedRanges.some((qr) => from >= qr.from && to <= qr.to);
+    if (insideQuotes) return;
     const [eFrom, eTo] = expandRange(from, to, threshold, docLength);
 
     const nearCursor = hasFocus && selections.some(

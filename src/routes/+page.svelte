@@ -8,9 +8,9 @@
   let container;
   let view = $state(null);
   let rawContent = $state('');
-  let threshold = $state(1);
-  let autocompleteMinChars = $state(1);
-  let autocompleteDebounceMs = $state(100);
+  let threshold = $state(0);
+  let autocompleteMinChars = $state(0);
+  let autocompleteDebounceMs = $state(200);
 
   const concealCompartment = new Compartment();
   const autocompleteCompartment = new Compartment();
