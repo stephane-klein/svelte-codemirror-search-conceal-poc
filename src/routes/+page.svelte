@@ -6,6 +6,7 @@
   let autocompleteDebounceMs = $state(200);
   let showImplicitOperators = $state(false);
   let implicitOperator = $state("and");
+  const fetchTags = async () => { const r = await fetch("/tags.json"); return r.json(); };
 </script>
 
 <h1>svelte-codemirror-search-conceal-poc</h1>
@@ -65,6 +66,7 @@
     implicitOp={implicitOperator}
     doc="#linux and #git or #postgresql"
     ph="Search..."
+    tags={fetchTags}
   />
 </div>
 
@@ -80,6 +82,7 @@
     implicitOp={implicitOperator}
     doc="(#docker #podman) and (#linux #git)"
     ph="Search..."
+    tags={fetchTags}
   />
 </div>
 
@@ -95,6 +98,7 @@
     implicitOp={implicitOperator}
     doc="#ffmpeg #wireshark #ffmpeg"
     ph="Search..."
+    tags={fetchTags}
   />
 </div>
 

@@ -14,6 +14,7 @@
     implicitOp = "and",
     doc = "",
     ph = "Search...",
+    tags = null,
     onchange = () => {},
   } = $props();
 
@@ -72,7 +73,7 @@
           },
         ]),
         concealCompartment.of(concealPlugin(1, false, "and")),
-        autocompleteCompartment.of(tagAutocompleteExtension(1, 100)),
+        autocompleteCompartment.of(tagAutocompleteExtension(1, 100, tags)),
         editorTheme,
       ],
       parent: container,
@@ -100,11 +101,12 @@
     const o = implicitOp;
     const m = autocompleteMinChars;
     const d = autocompleteDebounceMs;
+    const tg = tags;
 
     view.dispatch({
       effects: [
         concealCompartment.reconfigure(concealPlugin(t, s, o)),
-        autocompleteCompartment.reconfigure(tagAutocompleteExtension(m, d)),
+        autocompleteCompartment.reconfigure(tagAutocompleteExtension(m, d, tg)),
       ],
     });
   });
