@@ -1,5 +1,6 @@
 import { ViewPlugin, Decoration } from "@codemirror/view";
 import { TagWidget } from "./tag-widget.js";
+import { OperatorWidget } from "./operator-widget.js";
 
 const TAG_PATTERN = /#[^\s#]+/g;
 
@@ -10,6 +11,30 @@ function expandRange(from, to, threshold, max) {
   ];
 }
 
+function findOperators(docStr) {
+  const results = [];
+
+  const wordRe = /\b(or|and|et|ou|not|non)\b/gi;
+  let m;
+  while ((m = wordRe.exec(docStr)) !== null) {
+    results.push({ from: m.index, to: m.index + m[0].length, text: m[0] });
+  }
+
+  const symRe = /\|\||&&/g;
+  while ((m = symRe.exec(docStr)) !== null) {
+    results.push({ from: m.index, to: m.index + m[0].length, text: m[0] });
+  }
+
+  const exclRe = /(?:^|\s)!(?=\s|$)/g;
+  while ((m = exclRe.exec(docStr)) !== null) {
+    const start = m.index + (m[0][0] === " " ? 1 : 0);
+    results.push({ from: start, to: start + 1, text: "!" });
+  }
+
+  results.sort((a, b) => a.from - b.from);
+  return results;
+}
+
 function tagDecorations(view, threshold) {
   const widgets = [];
   const doc = view.state.doc;
@@ -18,28 +43,19 @@ function tagDecorations(view, threshold) {
   const selections = view.state.selection.ranges;
   const hasFocus = view.hasFocus;
 
-  TAG_PATTERN.lastIndex = 0;
-
-  let match;
-  while ((match = TAG_PATTERN.exec(docStr)) !== null) {
-    const from = match.index;
-    const to = from + match[0].length;
-    const tagName = match[0].slice(1);
-
+  function addConceal(from, to, text, isTag) {
     const [eFrom, eTo] = expandRange(from, to, threshold, docLength);
 
     const nearCursor = hasFocus && selections.some(
       (sel) => eFrom <= sel.to && sel.from <= eTo
     );
 
-    if (nearCursor) continue;
+    if (nearCursor) return;
 
     const toPos = to;
-    widgets.push(Decoration.replace({}).range(from, to));
-    widgets.push(
-      Decoration.widget({
-        widget: new TagWidget({
-          tag: tagName,
+    const widget = isTag
+      ? new TagWidget({
+          tag: text,
           onClick: () => {
             view.dispatch({
               selection: { anchor: toPos },
@@ -47,9 +63,30 @@ function tagDecorations(view, threshold) {
             });
             view.focus();
           },
-        }),
-      }).range(from)
-    );
+        })
+      : new OperatorWidget({
+          text,
+          onClick: () => {
+            view.dispatch({
+              selection: { anchor: toPos },
+              scrollIntoView: true,
+            });
+            view.focus();
+          },
+        });
+
+    widgets.push(Decoration.replace({}).range(from, to));
+    widgets.push(Decoration.widget({ widget }).range(from));
+  }
+
+  TAG_PATTERN.lastIndex = 0;
+  let match;
+  while ((match = TAG_PATTERN.exec(docStr)) !== null) {
+    addConceal(match.index, match.index + match[0].length, match[0].slice(1), true);
+  }
+
+  for (const op of findOperators(docStr)) {
+    addConceal(op.from, op.to, op.text, false);
   }
 
   return Decoration.set(widgets, true);

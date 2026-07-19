@@ -30,7 +30,7 @@
     if (!container) return;
 
     view = new EditorView({
-      doc: '#linux #git #postgresql',
+      doc: '#linux and #git or #postgresql',
       extensions: [
         singleLine,
         updateListener,
@@ -63,6 +63,18 @@
             userSelect: 'none',
             fontFamily: 'inherit',
             margin: '0 0.1em',
+          },
+          '.cm-operator-pill': {
+            padding: '0.05em 0.25em',
+            borderRadius: '0.3em',
+            fontSize: '0.75em',
+            fontWeight: '500',
+            whiteSpace: 'nowrap',
+            userSelect: 'none',
+            fontFamily: 'inherit',
+            backgroundColor: '#e5e5e5',
+            color: '#666',
+            textTransform: 'uppercase',
           },
           '.cm-tooltip': {
             border: '1px solid #ddd',
