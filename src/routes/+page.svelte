@@ -2,11 +2,12 @@
   import { EditorView, keymap, placeholder } from '@codemirror/view';
   import { EditorState, Compartment } from '@codemirror/state';
   import { defaultKeymap } from '@codemirror/commands';
-  import { concealPlugin, findOperators, findQuotedRanges } from '$lib/conceal-plugin.js';
+  import { concealPlugin, findOperators, findQuotedRanges, checkParens } from '$lib/conceal-plugin.js';
   import { tagAutocompleteExtension } from '$lib/autocomplete-plugin.js';
 
   let container;
-  let view = $state(null);
+  let view;
+  let viewReady = $state(false);
   let rawContent = $state('');
   let threshold = $state(0);
   let autocompleteMinChars = $state(0);
@@ -14,6 +15,8 @@
 
   const concealCompartment = new Compartment();
   const autocompleteCompartment = new Compartment();
+
+  let showParensError = $state(false);
 
   let operatorError = $derived.by(() => {
     if (!rawContent) return false;
@@ -29,6 +32,11 @@
     return false;
   });
 
+  let parensError = $derived.by(() => {
+    if (!rawContent) return null;
+    return checkParens(rawContent, findQuotedRanges(rawContent));
+  });
+
   const singleLine = EditorState.transactionFilter.of((tr) => {
     if (tr.newDoc.lines > 1) return [];
     return tr;
@@ -37,6 +45,7 @@
   const updateListener = EditorView.updateListener.of((update) => {
     if (update.docChanged) {
       rawContent = update.state.doc.toString();
+      showParensError = false;
     }
   });
 
@@ -50,6 +59,10 @@
         updateListener,
         placeholder('Search...'),
         keymap.of(defaultKeymap),
+        keymap.of([{
+          key: 'Enter',
+          run: () => { showParensError = true; return true; },
+        }]),
         concealCompartment.of(concealPlugin(1)),
         autocompleteCompartment.of(tagAutocompleteExtension(1, 100)),
         EditorView.theme({
@@ -117,25 +130,31 @@
       parent: container,
     });
 
-    return () => view.destroy();
-  });
-
-  $effect(() => {
-    if (!view) return;
-    const t = threshold;
-    view.dispatch({
-      effects: concealCompartment.reconfigure(concealPlugin(t)),
+    view.dom.addEventListener('focusout', (e) => {
+      if (!view.dom.contains(e.relatedTarget)) {
+        showParensError = true;
+      }
     });
+
+    viewReady = true;
+
+    return () => {
+      viewReady = false;
+      view.destroy();
+    };
   });
 
   $effect(() => {
-    if (!view) return;
+    if (!viewReady) return;
+    const t = threshold;
     const m = autocompleteMinChars;
     const d = autocompleteDebounceMs;
+
     view.dispatch({
-      effects: autocompleteCompartment.reconfigure(
-        tagAutocompleteExtension(m, d)
-      ),
+      effects: [
+        concealCompartment.reconfigure(concealPlugin(t)),
+        autocompleteCompartment.reconfigure(tagAutocompleteExtension(m, d)),
+      ],
     });
   });
 </script>
@@ -144,11 +163,19 @@
 
 <div class="search-row">
   <div class="editor-wrapper" bind:this={container}></div>
-  <button>Apply</button>
+  <button onclick={() => showParensError = true}>Apply</button>
 </div>
 
 {#if operatorError}
   <p class="error-msg">Consecutive boolean operators detected</p>
+{/if}
+
+{#if parensError && (parensError.type === 'unmatched_close' || showParensError)}
+  <p class="error-msg">
+    {parensError.type === 'unmatched_close'
+      ? 'Unmatched closing parenthesis'
+      : 'Unclosed opening parenthesis'}
+  </p>
 {/if}
 
 <div class="config-row">

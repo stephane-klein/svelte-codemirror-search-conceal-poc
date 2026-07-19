@@ -52,6 +52,20 @@ export function findQuotedRanges(docStr) {
   return ranges;
 }
 
+export function checkParens(docStr, quotedRanges) {
+  let balance = 0;
+  for (let i = 0; i < docStr.length; i++) {
+    if (quotedRanges.some((r) => i >= r.from && i < r.to)) continue;
+    if (docStr[i] === "(") balance++;
+    if (docStr[i] === ")") {
+      balance--;
+      if (balance < 0) return { type: "unmatched_close" };
+    }
+  }
+  if (balance > 0) return { type: "unmatched_open" };
+  return null;
+}
+
 function tagDecorations(view, threshold) {
   const widgets = [];
   const doc = view.state.doc;
