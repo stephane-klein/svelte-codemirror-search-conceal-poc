@@ -1,0 +1,18 @@
+[env]
+_.path = './node_modules/.bin'
+[tools]
+node = "24.18.0"
+pnpm = "11.15.0"
+
+[tasks.lint]
+run ="pnpm run lint"
+
+[tasks.format]
+run ="pnpm run format"
+
+[tasks.check]
+run ="pnpm run check"
+
+[tasks.lint-pkg]
+run = "pnpm run lint:pkg"
+

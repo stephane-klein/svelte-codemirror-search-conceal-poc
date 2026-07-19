@@ -1,0 +1,10 @@
+{
+  "name": "svelte-codemirror-search-conceal-poc",
+  "type": "module",
+  "author": "Stéphane Klein",
+  "license": "MIT",
+  "scripts": {
+    "hello": "node src/hello_world.js"
+  },
+  "devDependencies": {}
+}
