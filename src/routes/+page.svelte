@@ -3,13 +3,17 @@
   import { EditorState, Compartment } from '@codemirror/state';
   import { defaultKeymap } from '@codemirror/commands';
   import { concealPlugin } from '$lib/conceal-plugin.js';
+  import { tagAutocompleteExtension } from '$lib/autocomplete-plugin.js';
 
   let container;
   let view = $state(null);
   let rawContent = $state('');
   let threshold = $state(1);
+  let autocompleteMinChars = $state(1);
+  let autocompleteDebounceMs = $state(100);
 
   const concealCompartment = new Compartment();
+  const autocompleteCompartment = new Compartment();
 
   const singleLine = EditorState.transactionFilter.of((tr) => {
     if (tr.newDoc.lines > 1) return [];
@@ -33,6 +37,7 @@
         placeholder('Search...'),
         keymap.of(defaultKeymap),
         concealCompartment.of(concealPlugin(1)),
+        autocompleteCompartment.of(tagAutocompleteExtension(1, 100)),
         EditorView.theme({
           '&': { height: '100%', maxWidth: '100%', overflow: 'hidden' },
           '.cm-scroller': { overflow: 'hidden' },
@@ -59,6 +64,27 @@
             fontFamily: 'inherit',
             margin: '0 0.1em',
           },
+          '.cm-tooltip': {
+            border: '1px solid #ddd',
+            backgroundColor: '#fff',
+            color: '#1a1a1a',
+            fontSize: '14px',
+            maxHeight: '280px',
+          },
+          '.cm-tooltip.cm-tooltip-autocomplete ul': {
+            fontFamily: 'system-ui, -apple-system, sans-serif',
+          },
+          '.cm-tooltip.cm-tooltip-autocomplete ul li': {
+            padding: '3px 8px',
+            lineHeight: '1.5',
+          },
+          '.cm-tooltip.cm-tooltip-autocomplete ul li[aria-selected]': {
+            backgroundColor: '#0066cc',
+            color: '#fff',
+          },
+          '.cm-completionMatchedText': {
+            fontWeight: '700',
+          },
           '&.cm-focused': { outline: 'none' },
         }),
       ],
@@ -75,6 +101,17 @@
       effects: concealCompartment.reconfigure(concealPlugin(t)),
     });
   });
+
+  $effect(() => {
+    if (!view) return;
+    const m = autocompleteMinChars;
+    const d = autocompleteDebounceMs;
+    view.dispatch({
+      effects: autocompleteCompartment.reconfigure(
+        tagAutocompleteExtension(m, d)
+      ),
+    });
+  });
 </script>
 
 <h1>Search</h1>
@@ -88,6 +125,18 @@
   <label for="threshold">Conceal threshold (chars):</label>
   <input type="number" id="threshold" bind:value={threshold} min="0" max="20" />
   <span class="config-value">={threshold}</span>
+</div>
+
+<div class="config-row">
+  <label for="autocomplete-min-chars">Autocomplete min chars:</label>
+  <input type="number" id="autocomplete-min-chars" bind:value={autocompleteMinChars} min="0" max="10" />
+  <span class="config-value">={autocompleteMinChars}</span>
+</div>
+
+<div class="config-row">
+  <label for="autocomplete-debounce">Autocomplete debounce (ms):</label>
+  <input type="number" id="autocomplete-debounce" bind:value={autocompleteDebounceMs} min="0" max="2000" step="50" />
+  <span class="config-value">={autocompleteDebounceMs}ms</span>
 </div>
 
 <p>Search input raw value: {rawContent}</p>
