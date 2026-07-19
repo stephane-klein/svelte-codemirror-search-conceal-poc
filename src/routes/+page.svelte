@@ -55,7 +55,7 @@
     if (!container) return;
 
     view = new EditorView({
-      doc: '#linux and #git or #postgresql',
+      doc: '',
       extensions: [
         singleLine,
         updateListener,
@@ -164,7 +164,52 @@
   });
 </script>
 
-<h1>Search</h1>
+<h1>svelte-codemirror-search-conceal-poc</h1>
+
+<p class="subtitle">
+  Enriched search field using CodeMirror and the conceal mechanism. Tags and boolean
+  operators are displayed as pills when the cursor is away. Supports autocompletion
+  on <kbd>#</kbd>, parenthesis balance validation, and configurable conceal threshold.
+</p>
+
+<details open>
+  <summary>Configuration</summary>
+
+  <div class="config-row">
+    <label for="threshold">Conceal threshold (chars):</label>
+    <input type="number" id="threshold" bind:value={threshold} min="0" max="20" />
+    <span class="config-value">={threshold}</span>
+  </div>
+
+  <div class="config-row">
+    <label for="autocomplete-min-chars">Autocomplete min chars:</label>
+    <input type="number" id="autocomplete-min-chars" bind:value={autocompleteMinChars} min="0" max="10" />
+    <span class="config-value">={autocompleteMinChars}</span>
+  </div>
+
+  <div class="config-row">
+    <label for="autocomplete-debounce">Autocomplete debounce (ms):</label>
+    <input type="number" id="autocomplete-debounce" bind:value={autocompleteDebounceMs} min="0" max="2000" step="50" />
+    <span class="config-value">={autocompleteDebounceMs}ms</span>
+  </div>
+
+  <div class="config-row">
+    <label>
+      <input type="checkbox" bind:checked={showImplicitOperators} />
+      Show implicit operators between consecutive tags
+    </label>
+  </div>
+
+  {#if showImplicitOperators}
+    <div class="config-row">
+      <span>Default implicit operator:</span>
+      <label><input type="radio" bind:group={implicitOperator} value="and" /> and</label>
+      <label><input type="radio" bind:group={implicitOperator} value="or" /> or</label>
+    </div>
+  {/if}
+</details>
+
+<hr />
 
 <div class="search-row">
   <div class="editor-wrapper" bind:this={container}></div>
@@ -183,40 +228,8 @@
   </p>
 {/if}
 
-<div class="config-row">
-  <label for="threshold">Conceal threshold (chars):</label>
-  <input type="number" id="threshold" bind:value={threshold} min="0" max="20" />
-  <span class="config-value">={threshold}</span>
-</div>
-
-<div class="config-row">
-  <label for="autocomplete-min-chars">Autocomplete min chars:</label>
-  <input type="number" id="autocomplete-min-chars" bind:value={autocompleteMinChars} min="0" max="10" />
-  <span class="config-value">={autocompleteMinChars}</span>
-</div>
-
-<div class="config-row">
-  <label for="autocomplete-debounce">Autocomplete debounce (ms):</label>
-  <input type="number" id="autocomplete-debounce" bind:value={autocompleteDebounceMs} min="0" max="2000" step="50" />
-  <span class="config-value">={autocompleteDebounceMs}ms</span>
-</div>
-
-<div class="config-row">
-  <label>
-    <input type="checkbox" bind:checked={showImplicitOperators} />
-    Show implicit operators between consecutive tags
-  </label>
-</div>
-
-{#if showImplicitOperators}
-  <div class="config-row">
-    <span>Default implicit operator:</span>
-    <label><input type="radio" bind:group={implicitOperator} value="and" /> and</label>
-    <label><input type="radio" bind:group={implicitOperator} value="or" /> or</label>
-  </div>
-{/if}
-
-<p>Search input raw value: {rawContent}</p>
+<p>Search input raw value:</p>
+<pre class="raw-value">{rawContent || '\u00A0'}</pre>
 
 <style>
   .search-row {
@@ -234,6 +247,40 @@
 
   .editor-wrapper:focus-within {
     border-color: #66f;
+  }
+
+  hr {
+    border: none;
+    border-top: 1px solid #ddd;
+    margin: 24px 0;
+  }
+
+  details {
+    margin-bottom: 0;
+  }
+
+  summary {
+    cursor: pointer;
+    font-size: 13px;
+    color: #666;
+    margin-bottom: 8px;
+  }
+
+  .subtitle {
+    font-size: 14px;
+    color: #555;
+    line-height: 1.5;
+    margin: -12px 0 20px;
+  }
+
+  .subtitle kbd {
+    font-family: ui-monospace, monospace;
+    font-size: 12px;
+    padding: 1px 5px;
+    border: 1px solid #ccc;
+    border-bottom-width: 2px;
+    border-radius: 3px;
+    background: #f5f5f5;
   }
 
   .config-row {
@@ -256,5 +303,18 @@
     color: #cc0000;
     font-size: 13px;
     margin: 4px 0 0;
+  }
+
+  .raw-value {
+    font-family: ui-monospace, 'Cascadia Code', monospace;
+    font-size: 13px;
+    background: #f5f5f5;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    padding: 6px 8px;
+    margin: 0;
+    white-space: pre-wrap;
+    word-break: break-all;
+    color: #333;
   }
 </style>
