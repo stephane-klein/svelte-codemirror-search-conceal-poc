@@ -55,7 +55,7 @@ function buildOptions(query, from) {
 
 export function tagAutocompleteExtension(minChars = 1, debounceMs = 100) {
   function tagCompletionSource(context) {
-    const word = context.matchBefore(/#[^\s#]*/);
+    const word = context.matchBefore(/#[^\s#(),\[\]{}<>]*/);
     if (!word) return null;
 
     if (isInsideQuotes(context.state.doc.toString(), context.pos)) return null;

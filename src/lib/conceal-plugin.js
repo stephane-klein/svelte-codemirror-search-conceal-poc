@@ -2,7 +2,7 @@ import { ViewPlugin, Decoration } from "@codemirror/view";
 import { TagWidget } from "./tag-widget.js";
 import { OperatorWidget } from "./operator-widget.js";
 
-const TAG_PATTERN = /#[^\s#]+/g;
+const TAG_PATTERN = /#[^\s#(),\[\]{}<>]+/g;
 
 function expandRange(from, to, threshold, max) {
   return [
